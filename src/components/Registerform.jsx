@@ -1,8 +1,8 @@
 import { ErrorMessage, FastField, Field, FieldArray, Form, Formik, useFormik } from 'formik';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import * as Yup from 'yup'
-import PersonalError from './personalError';
 import FavoriteField from './FavoriteField';
+import FormikControl from './formikElement/formikControl';
 
 const initialValues = {
     name : '',
@@ -15,15 +15,17 @@ const initialValues = {
         postalCode : ''
     },
     phone : ['',''],
-    favorits : ['']
+    favorits : [''],
+    education : 1,
 }
+
 
 const onSubmit = (values , submitProps)=>{
     console.log(values);
 
     setTimeout(() => {
-        submitProps.setSubmitting(false);
-        submitProps.resetForm(initialValues)
+        submitProps.setSubmitting(false)
+        submitProps.resetForm()
     }, 3000);
 }
 
@@ -38,114 +40,126 @@ const validationSchema = Yup.object({
         postalCode : Yup.string().required('لطفا مقداری بنویسید .'),
     }),
     phone : Yup.array().of(Yup.string().required('لطفا مقداری بنویسید .')),
-    favorits : Yup.array().of(Yup.string().required('لطفا مقداری بنویسید .'))
-    
+    favorits : Yup.array().of(Yup.string().required('لطفا مقداری بنویسید .')),
 })
+
+
+const education = [
+    {id : 1 , value : 'ابتدایی'} ,
+    {id : 2 , value : 'سیکل'} ,
+    {id : 3 , value : 'دیپلم'} ,
+    {id : 4 , value : 'لیسانس'} ,
+]
+
 
 
 
 const Registerform = () => {
+    const [savedData , setSavedData] = useState(null);
+    const [myValues , setMyValues] = useState(null);
+
+    useEffect(() => {
+        const localSavedData = JSON.parse(localStorage.getItem('savedData'));
+        setSavedData(localSavedData)
+    }, []);
+
+
+    const handleGetSaveData = ()=>{
+        console.log(savedData);
+        setMyValues(savedData)
+    }
+
+
+    const handleSetDate = (formik)=>{
+        console.log(formik.values);
+        localStorage.setItem('savedData' , JSON.stringify(formik.values));
+    }
     
-    const attrs = (targetValue,targetType)=>{
+    const attrs = (targetType  , targetId , targetControl , targetLabel , targetName , targetClass)=>{
         return ({
-            name:targetValue,
-            type: targetType,
-            id:targetValue,
-            className:'form-control',
+            type : targetType ,
+            className : targetClass ,
+            id : targetId ,
+            control : targetControl ,
+            label : targetLabel ,
+            name : targetName ,
         })
     }
 
+   
 
 
     return (    
         <Formik 
-         initialValues={initialValues} 
+         initialValues={myValues || initialValues} 
          validationSchema={validationSchema} 
          onSubmit={onSubmit} 
          validateOnMount
-        >
-            
-            {formik=>{
-                console.log(formik);
-                return(
-                    <div className='auth_container container-fluid d-flex justify-content-center align-items-center w-100 h-100-vh p-0'>
-                        <div className="row w-100 justify-content-center align-items-center">
-                            <div className='border border-primary border-2 bg-dark text-white rounded-3 py-4 mt-3 col-11 col-md-8 col-lg-6 col-xl-4 py-2 px-3'>
-                                <Form className='row'>
-                                    <h1 className='text-center'>
-                                        <i className='fas fa-user-plus text-primary'></i>
-                                    </h1>
-                                    <div className="mb-3">
-                                        <label htmlFor="name" className='form-label'>نام</label>
-                                        <FastField {...attrs('name','text')} id='name' />
-                                        <ErrorMessage name='name' component={PersonalError} />                       
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="email" className='form-label'>ایمیل</label>
-                                        <FastField {...attrs('email','email')} id='email' />
-                                        <ErrorMessage name='email' component={PersonalError} /> 
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="password" className='form-label'>رمز عبور</label>
-                                        <FastField {...attrs('password','password')} id='password' />
-                                        <ErrorMessage name='password' component={PersonalError} />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="password2" className='form-label'>تکرار رمز عبور</label>
-                                        <FastField {...attrs('password2','password')} id='password2'  />
-                                        <ErrorMessage name='password2' component={PersonalError} />                        
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="password2" className='form-label'>بیوگرافی</label>
-                                        <FastField {...attrs('bio','text')} id='bio' component='textarea' />
-                                        <ErrorMessage name='bio' component={PersonalError} />                        
-                                    </div>
+         enableReinitialize
+         >
 
-                                    <div className="col-6">
-                                        <label htmlFor="city" className='form-label'>شهر</label>
-                                        <FastField {...attrs('address.city','text')} id='city' />
-                                        <ErrorMessage name='address.city' component={PersonalError} />                        
-                                    </div>
-                                    <div className="col-6 mb-4">
-                                        <label htmlFor="postalCode" className='form-label'>کد پستی</label>
-                                        <FastField {...attrs('address.postalCode','number')} id='postalCode' />
-                                        <ErrorMessage name='address.postalCode' component={PersonalError} />                        
-                                    </div>
+        {formik=>{
+            // console.log(formik);
+            return(
+                <div className='auth_container container-fluid d-flex justify-content-center align-items-center w-100 h-100-vh p-0'>
+                <div className="row w-100 justify-content-center align-items-center">
+                    <div className='border border-primary border-2 bg-dark text-white rounded-3 py-4 mt-3 col-11 col-md-8 col-lg-6 col-xl-4 py-2 px-3'>
+                        <Form className='row'>
+                            <h1 className='text-center'>
+                                <i className='fas fa-user-plus text-primary'></i>
+                            </h1>
+                            <FormikControl {...attrs('text','name','input','نام','name',null)} />
+                       
+                            <FormikControl {...attrs('email','email','input','ایمیل','email',null)} />
 
-                                    <div className="col-6">
-                                        <label htmlFor="mobilePhone" className='form-label'>شماره موبایل</label>
-                                        <FastField {...attrs('phone[0]','number')} id='mobilePhone' />
-                                        <ErrorMessage name='phone[0]' component={PersonalError} />                        
-                                    </div>
-                                    <div className="col-6 mb-3">
-                                        <label htmlFor="telePhone" className='form-label'>تلفن ثابت</label>
-                                        <FastField {...attrs('phone[1]','number')} id='telePhone' />
-                                        <ErrorMessage name='phone[1]' component={PersonalError} />                        
-                                    </div>
+                            <FormikControl {...attrs('password','password','input','رمز عبور','password',null)} />
 
-                                    <div className="mb-4">
-                                        <label htmlFor="favorits" className='form-label'>علاقه مندی </label>
-                                        <FieldArray {...attrs('favorits','text')} id='favorits' >
-                                            {props=><FavoriteField {...props} />}
-                                        </FieldArray>               
-                                    </div>
+                            <FormikControl {...attrs('password','password2','input','تکرار رمز عبور','password2',null)} />
 
-                                    <div className="mb-2 d-flex ">
-                                        <button className="btn btn-primary w-50 mx-auto" disabled={!formik.isValid || formik.isSubmitting}>
-                                            {formik.isSubmitting ? 
-                                                <div className="spinner-border text-white mt-1" style={{fontSize:10,width:25,height:25}}>
-                                                    <span className="visually-hidden">Loading...</span>
-                                                </div>
-                                            : 'ثبت نام'}
-                                        </button>
-                                    </div>
-                                </Form>
+                            <FormikControl {...attrs('text','bio','textarea','بیوگرافی','bio',null)} />
+
+                            <FormikControl {...attrs('text','city','input','شهر','address.city','col-6 mb-4')} />
+
+                            <FormikControl {...attrs('number','postalCode','input','کد پستی','address.postalCode','col-6 mb-4')} />
+
+                            <FormikControl {...attrs('number','mobilePhone','input','شماره موبایل','phone[0]','col-6')} />
+
+                            <FormikControl {...attrs('number','telePhone','input','تلفن ثابت','phone[1]','col-6 mb-3')} />
+
+                            <FormikControl {...attrs('','education','select','تحصیلات','education')} option={education} />
+
+                            <div className="mb-4">
+                                <label htmlFor="favorits" className='form-label'>علاقه مندی </label>
+                                <FieldArray {...attrs('favorits','text')} >
+                                    {props=><FavoriteField {...props} />}
+                                </FieldArray>
                             </div>
-                        </div>
+
+
+                            <div className="mb-2 d-flex justify-content-around ">
+                                <button className="btn btn-primary w-25 " disabled={!(formik.isValid && formik.dirty) || formik.isSubmitting}>
+                                    {formik.isSubmitting ? 
+                                        <div className="spinner-border text-white mt-1" style={{fontSize:10,width:25,height:25}} role="status">
+                                            <span className="visually-hidden">Loading...</span>
+                                        </div>
+                                    : 'ثبت نام'}
+                                </button>
+                                 
+                                {savedData ? 
+                                    <button className="btn btn-warning" type='button' 
+                                    onClick={handleGetSaveData}>دریافت از سیستم</button>
+                                :
+                                    <button className="btn btn-success" type='button' disabled={!(formik.isValid) || formik.isSubmitting}
+                                    onClick={()=>handleSetDate(formik)}>ذخیره در سیستم</button>
+                                }
+                            </div>
+                        </Form>
                     </div>
-                )
-            }}
-        </Formik>  
+                </div>
+            </div>
+            )
+        }}
+        </Formik>
     )
 }
 
